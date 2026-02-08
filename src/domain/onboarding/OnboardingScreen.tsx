@@ -1,69 +1,116 @@
-import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeScreen, Button, Spacer, Pagination } from '@/ui/components';
-import { ROUTES } from '@/technical/navigation';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SafeScreen, Button, ProgressBar } from '@/ui/components';
+import { colors } from '@/ui/theme/colors';
 import { spacing } from '@/ui/theme/spacing';
-import { onboardingSlides } from './data';
-import { OnboardingSlideView } from './OnboardingSlideView';
-import { useOnboardingComplete } from './useOnboardingComplete';
+import { useTutorialState } from './useTutorialState';
+import { tutorialStory, getStepIndex, TOTAL_STEPS } from './tutorialData';
+import { TutorialWelcome } from './TutorialWelcome';
+import { TutorialGmIntro } from './TutorialGmIntro';
+import { TutorialQuestion } from './TutorialQuestion';
+import { TutorialAnswer } from './TutorialAnswer';
+import { TutorialReveal } from './TutorialReveal';
+import { TutorialComplete } from './TutorialComplete';
 
 export function OnboardingScreen() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const { markComplete } = useOnboardingComplete();
-  const router = useRouter();
+  const {
+    currentStep,
+    selectedQuestions,
+    isLoading,
+    advance,
+    goBack,
+    selectQuestion,
+    finish,
+    skip,
+  } = useTutorialState();
 
-  const isLast = currentIndex === onboardingSlides.length - 1;
+  if (isLoading) {
+    return (
+      <SafeScreen style={styles.loading}>
+        <ActivityIndicator color={colors.accent} size="large" />
+      </SafeScreen>
+    );
+  }
 
-  const handleNext = async () => {
-    if (isLast) {
-      await markComplete();
-      router.replace(ROUTES.STORIES as any);
-    } else {
-      setCurrentIndex((prev) => prev + 1);
+  const progress = (getStepIndex(currentStep) + 1) / TOTAL_STEPS;
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 'welcome':
+        return <TutorialWelcome onStart={advance} />;
+      case 'gm_intro':
+        return <TutorialGmIntro onContinue={advance} />;
+      case 'question_1':
+        return (
+          <TutorialQuestion
+            round={tutorialStory.rounds[0]}
+            roundIndex={0}
+            onSelectQuestion={(q) => selectQuestion('round_1', q)}
+          />
+        );
+      case 'answer_1':
+        return (
+          <TutorialAnswer
+            question={selectedQuestions.round_1!}
+            onContinue={advance}
+          />
+        );
+      case 'question_2':
+        return (
+          <TutorialQuestion
+            round={tutorialStory.rounds[1]}
+            roundIndex={1}
+            onSelectQuestion={(q) => selectQuestion('round_2', q)}
+          />
+        );
+      case 'answer_2':
+        return (
+          <TutorialAnswer
+            question={selectedQuestions.round_2!}
+            onContinue={advance}
+          />
+        );
+      case 'reveal':
+        return <TutorialReveal onComplete={advance} />;
+      case 'complete':
+        return <TutorialComplete onFinish={finish} />;
     }
-  };
-
-  const handleSkip = async () => {
-    await markComplete();
-    router.replace(ROUTES.STORIES as any);
   };
 
   return (
     <SafeScreen>
-      <View style={styles.skipContainer}>
-        {!isLast && (
-          <Button title="Skip" variant="ghost" onPress={handleSkip} />
+      <View style={styles.header}>
+        {currentStep !== 'welcome' ? (
+          <Button title="Back" variant="ghost" onPress={goBack} />
+        ) : (
+          <View style={styles.backPlaceholder} />
+        )}
+        <View style={styles.progressContainer}>
+          <ProgressBar progress={progress} />
+        </View>
+        {currentStep !== 'complete' && (
+          <Button title="Skip" variant="ghost" onPress={skip} />
         )}
       </View>
-
-      <OnboardingSlideView slide={onboardingSlides[currentIndex]} />
-
-      <View style={styles.footer}>
-        <Pagination
-          activeIndex={currentIndex}
-          totalItems={onboardingSlides.length}
-        />
-        <Spacer size="lg" />
-        <Button
-          title={isLast ? "Let's Play" : 'Next'}
-          onPress={handleNext}
-          style={styles.button}
-        />
-      </View>
+      {renderStep()}
     </SafeScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  skipContainer: {
-    alignItems: 'flex-end',
-    minHeight: 48,
+  loading: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  footer: {
-    paddingBottom: spacing.lg,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
-  button: {
-    width: '100%',
+  backPlaceholder: {
+    width: 50,
+  },
+  progressContainer: {
+    flex: 1,
   },
 });
