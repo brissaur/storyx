@@ -5,4 +5,5 @@ export { Modal } from './Modal';
 export { Spacer } from './Spacer';
 export { SafeScreen } from './SafeScreen';
 export { DifficultyBadge } from './DifficultyBadge';
+export { Pagination } from './Pagination';
 export type { Difficulty } from './DifficultyBadge';

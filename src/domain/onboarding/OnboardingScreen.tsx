@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeScreen, Button, Spacer } from '@/ui/components';
+import { SafeScreen, Button, Spacer, Pagination } from '@/ui/components';
 import { ROUTES } from '@/technical/navigation';
 import { spacing } from '@/ui/theme/spacing';
 import { onboardingSlides } from './data';
 import { OnboardingSlideView } from './OnboardingSlideView';
-import { OnboardingPagination } from './OnboardingPagination';
 import { useOnboardingComplete } from './useOnboardingComplete';
 
 export function OnboardingScreen() {
@@ -41,9 +40,9 @@ export function OnboardingScreen() {
       <OnboardingSlideView slide={onboardingSlides[currentIndex]} />
 
       <View style={styles.footer}>
-        <OnboardingPagination
-          total={onboardingSlides.length}
-          current={currentIndex}
+        <Pagination
+          activeIndex={currentIndex}
+          totalItems={onboardingSlides.length}
         />
         <Spacer size="lg" />
         <Button

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeScreen, Typography, Spacer } from '@/ui/components';
-import { FlippableCard } from '@/technical/animations';
+import { FlipCard } from '@/technical/animations';
 import { spacing } from '@/ui/theme/spacing';
 import { GameHeader } from './GameHeader';
 import { PublicPlotFace } from './PublicPlotFace';
@@ -36,13 +36,20 @@ export function GameScreen({
       <GameHeader title={title} difficulty={difficulty} />
       <Spacer size="md" />
 
-      <Pressable style={styles.cardContainer} onPress={handleCardPress}>
-        <FlippableCard
-          isFlipped={isFlipped}
-          front={<PublicPlotFace title={title} plot={publicPlot} />}
-          back={<SolutionFace solution={solution} />}
-        />
-      </Pressable>
+      <FlipCard
+        isFlipped={isFlipped}
+        onFlipRequest={handleCardPress}
+        enableHaptics={false}
+        containerStyle={styles.cardContainer}
+      >
+        <FlipCard.Front>
+          <PublicPlotFace title={title} plot={publicPlot} />
+        </FlipCard.Front>
+        <FlipCard.Back>
+          <SolutionFace solution={solution} />
+        </FlipCard.Back>
+        <FlipCard.Trigger />
+      </FlipCard>
 
       <SpoilerModal
         visible={showSpoilerModal}
